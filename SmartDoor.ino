@@ -14,17 +14,7 @@ const byte ROWS = 4;
 const byte COLS = 4; 
 
 // Tools
- //1. RFID
-  /// Cards Access Authorized
-char cardsAccept[][13] ={
-  {"BD 31 15 2B"},
-  {"45 5E 80 20"}
-};
-
-
-int cardsNumber = sizeof(cardsAccept) / sizeof (cardsAccept[0]);
-
- //2. KeyPad
+ //1. KeyPad
   /// KeyPad Map
 char keys[ROWS][COLS] = {
   {'D','#','0','*'},
@@ -35,17 +25,27 @@ char keys[ROWS][COLS] = {
   /// KeyPad Pins
 byte rowPins[ROWS] = {4, 3, 2, 0}; //connect to the row pinouts of the keypad
 byte colPins[COLS] = {8, 7, 6, 5}; //connect to the column pinouts of the keypad
- /// KeyPad Public Variables
+ /// KeyPad Variables
 int counter=0;
-char User[][6]{
-  {"Ahmed"},
-  {"Ali"}
-},
-UserPassword[][6]{
-  {"13579"},
-  {"12345"}  
-};
 
+// Users Details
+char User[][6]={ // Users Name
+  {"Ahmed"}, // User 1
+  {"Ali"},   // User 2
+  {"Max"}    // User 3
+},
+ cardsAccept[][13]={ // Users Card
+  {"45 5E 80 20"},// User 1
+  {"40 B0 02 74"},// User 2
+  {"D0 33 81 7A"} // User 3
+},
+UserPassword[][6]={ // Users Password
+  {"C157B"}, // User 1
+  {"1AC45"}, // User 2
+  {"A12DC"}
+};
+ //2. RFID
+int cardsNumber = sizeof(cardsAccept) / sizeof (cardsAccept[0]);
  //3. Audio
  int peep = A3;
 
