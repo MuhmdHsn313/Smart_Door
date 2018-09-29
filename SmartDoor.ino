@@ -30,30 +30,33 @@ int counter=0;
 
 // Users Details
 char User[][6]={ // Users Name
-  {"Ahmed"}, // User 1
-  {"Ali"},   // User 2
-  {"Max"}    // User 3
+  {"Ahmed"}, // User 1 ( Card 1, Name Ahmed, Enable)
+  {"Ali"},   // User 2 ( Card 2, Name Ali, Enable)
+//  {"Max"}    // User 3 ( Card 3, Name Max, Disable)
 },
  cardsAccept[][13]={ // Users Card
-  {"45 5E 80 20"},// User 1
-  {"40 B0 02 74"},// User 2
-  {"D0 33 81 7A"} // User 3
+  {"45 5E 80 20"},// User 1 ( Card 1, Name Ahmed, Enable)
+  {"40 B0 02 74"},// User 2 ( Card 2, Name Ali, Enable)
+//  {"D0 33 81 7A"} // User 3 ( Card 3, Name Max, Disable)
 },
 UserPassword[][6]={ // Users Password
-  {"C157B"}, // User 1
-  {"1AC45"}, // User 2
-  {"A12DC"}
+  {"C157B"}, // User 1 ( Card 1, Name Ahmed, Enable)
+  {"1AC45"}, // User 2 ( Card 2, Name Ali, Enable)
+//  {"A12DC"}  // User 3 ( Card 3, Name Max, Disable)
 };
  //2. RFID
 int cardsNumber = sizeof(cardsAccept) / sizeof (cardsAccept[0]);
- //3. Audio
- int peep = A3;
+ //3. LED
+int ledR = A3, ledG = A2;
+ //4. Sound
+int openSound = A0;
 
 // Class Section
 LiquidCrystal_I2C lcd(0x27,16,2);
 MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance.
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
-Servo servoLock, servoOpen;
+Servo servoOpen;
+// Servo servoLock;
 
 void setup() 
 {
@@ -71,11 +74,15 @@ void setup()
   lcd.backlight();
 
   // Servo Motor
-  servoLock.attach(A0);
+  //servoLock.attach(A0);
   servoOpen.attach(A1);
 
-  // Audio
-  pinMode(peep, OUTPUT);
+  // Leds
+  pinMode(ledR, OUTPUT);
+  pinMode(ledG, OUTPUT);
+
+  // Sound
+  pinMode(openSound, OUTPUT);
   
 }
 void loop() 
@@ -87,7 +94,8 @@ void loop()
   
   closeBoth();  // Close Both Door & Lock
   welcomCard(); //Say Hello On LCD
-  
+  digitalWrite(ledR,HIGH);
+  digitalWrite(ledG,LOW);
   
   // Look for new cards
   if ( ! mfrc522.PICC_IsNewCardPresent()) 
@@ -134,9 +142,6 @@ void loop()
   delay(300);
 
 } 
-
-
-
 
 // Screen Section
 void welcomCard(){
@@ -222,9 +227,11 @@ void openDoorLCD(){
      lcd.print("Successful!");
      lcd.setCursor(0,1);
      lcd.print("The door opens!");
-     digitalWrite(peep,HIGH);
+     digitalWrite(ledG,HIGH);
+     digitalWrite(ledR,LOW);
+     digitalWrite(openSound,HIGH);
      delay(350);
-     digitalWrite(peep,LOW);
+     digitalWrite(openSound,LOW);
      openDoor();
      
 }
@@ -279,26 +286,26 @@ bool checkPass( char pass[], int user ){
 void closeBoth(){
 
   // Close Both
-  servoLock.write(7); // زاوية الاغلاق لماطور القفل 
+  //servoLock.write(7); // زاوية الاغلاق لماطور القفل 
   servoOpen.write(180); // زاوية الاغلق للباب
 
 }
 void openDoor(){
   
   // Open Lock
-  servoLock.write(180); // زاوية الفتح للقفل
-  delay(1000);
+  //servoLock.write(180); // زاوية الفتح للقفل
+  //delay(1000);
 
   //Open Door
-  servoOpen.write(20); // زاوية الفتح للباب
+  servoOpen.write(10); // زاوية الفتح للباب
   delay(5000);
-
+  
   //Close Door
   servoOpen.write(180); // اغلاق الباب
-  delay(1000);
+  //delay(1000);
 
   // Close Lock
-  servoLock.write(7); // اغلاق القفل
-  delay(100);
+  //servoLock.write(7); // اغلاق القفل
+  //delay(100);
 
 }
