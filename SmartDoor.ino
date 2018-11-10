@@ -1,4 +1,3 @@
-
 // Library Section
 #include <SPI.h>
 #include <MFRC522.h>
@@ -17,10 +16,10 @@ const byte COLS = 4;
  //1. KeyPad
   /// KeyPad Map
 char keys[ROWS][COLS] = {
-  {'D','#','0','*'},
-  {'C','9','8','7'},
-  {'B','6','5','4'},
-  {'A','3','2','1'}
+  {'1','4','7','*'},
+  {'2','5','8','0'},
+  {'3','6','9','#'},
+  {'A','B','C','D'}
 };
   /// KeyPad Pins
 byte rowPins[ROWS] = {4, 3, 2, 0}; //connect to the row pinouts of the keypad
@@ -47,16 +46,16 @@ UserPassword[][6]={ // Users Password
  //2. RFID
 int cardsNumber = sizeof(cardsAccept) / sizeof (cardsAccept[0]);
  //3. LED
-int ledR = A3, ledG = A2;
+int ledR = A2, ledG = A3;
  //4. Sound
-int openSound = A0;
+//int openSound = A0;
 
 // Class Section
 LiquidCrystal_I2C lcd(0x27,16,2);
 MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance.
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 Servo servoOpen;
-// Servo servoLock;
+Servo servoLock;
 
 void setup() 
 {
@@ -74,7 +73,7 @@ void setup()
   lcd.backlight();
 
   // Servo Motor
-  //servoLock.attach(A0);
+  servoLock.attach(A0);
   servoOpen.attach(A1);
 
   // Leds
@@ -82,7 +81,7 @@ void setup()
   pinMode(ledG, OUTPUT);
 
   // Sound
-  pinMode(openSound, OUTPUT);
+  pinMode(1, OUTPUT);
   
 }
 void loop() 
@@ -185,7 +184,7 @@ void checkAccept(bool access, int userNumber){
   }
 }
 void setPassword(int user){
-  bool TFP;
+  char TFP;
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print(User[user]);
@@ -193,9 +192,13 @@ void setPassword(int user){
   lcd.setCursor(0,1);
   
   TFP = keyProcess(user);
-  if(TFP){
+  if(TFP == 'T'){
     Serial.println("Password True!");    
     openDoorLCD();
+  } else if (TFP == 'E'){
+
+    return;
+    
   } else {
     Serial.println("Password False!");
     tryAgain(user);
@@ -203,17 +206,21 @@ void setPassword(int user){
       
 }
 void tryAgain(int user){
-  bool TFP;
+  char TFP;
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print(User[user]);
   lcd.print(" Try Again: ");
   lcd.setCursor(0,1);
   
-  TFP = keyProcess(user);
-  if(TFP){
+    TFP = keyProcess(user);
+  if(TFP == 'T'){
     Serial.println("Password True!");    
     openDoorLCD();
+  } else if (TFP == 'E'){
+
+    return;
+    
   } else {
     Serial.println("Password False!");
     tryAgain(user);
@@ -229,14 +236,10 @@ void openDoorLCD(){
      lcd.print("The door opens!");
      digitalWrite(ledG,HIGH);
      digitalWrite(ledR,LOW);
-     digitalWrite(openSound,HIGH);
-     delay(350);
-     digitalWrite(openSound,LOW);
      openDoor();
-     
 }
 // KeyPad Section
-bool keyProcess(int userID){
+char keyProcess(int userID){
   bool prse=true, check = false;
   char inputPass[15];
 
@@ -250,7 +253,7 @@ bool keyProcess(int userID){
       break;
     } 
     else if ( inputPass[counter] == '*' ){
-      tryAgain(userID);
+      return 'E';
     }
     else
       lcd.print('*');
@@ -259,10 +262,10 @@ bool keyProcess(int userID){
   
   if( check ){
     Serial.println("Door Unlock!");
-    return true;  
+    return 'T';  
   } else {
     Serial.println("Door Still Lock!");
-    return false;  
+    return 'F';  
   }
   delay(100);
 }
@@ -286,26 +289,39 @@ bool checkPass( char pass[], int user ){
 void closeBoth(){
 
   // Close Both
-  //servoLock.write(7); // زاوية الاغلاق لماطور القفل 
-  servoOpen.write(180); // زاوية الاغلق للباب
+  servoLock.write(175); // زاوية الاغلاق لماطور القفل 
+  servoOpen.write(160); // زاوية الاغلق للباب
 
 }
 void openDoor(){
   
   // Open Lock
-  //servoLock.write(180); // زاوية الفتح للقفل
-  //delay(1000);
-
+  
+  delay(350);
+  digitalWrite(ledG,LOW);
+  delay(350);
+  digitalWrite(ledG,HIGH);
+  
+  servoLock.write(100); // زاوية الفتح للقفل
+  
+  delay(350);
+  digitalWrite(ledG,LOW);
+  delay(350);
+  digitalWrite(ledG,HIGH);
+  
   //Open Door
   servoOpen.write(10); // زاوية الفتح للباب
-  delay(5000);
-  
+  for(int i=0; i<10;i++){
+    delay(350);
+    digitalWrite(ledG,LOW);
+    delay(350);
+    digitalWrite(ledG,HIGH);  
+  }
   //Close Door
   servoOpen.write(180); // اغلاق الباب
-  //delay(1000);
+  delay(350);
 
   // Close Lock
-  //servoLock.write(7); // اغلاق القفل
-  //delay(100);
+  servoLock.write(175); // اغلاق القفل
 
 }
